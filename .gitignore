@@ -353,3 +353,4 @@ terraform/.terraform
 terraform/terraform.tfstate
 terraform/terraform.tfstate.backup
 terraform/.terraform.tfstate.lock.info
+src/Functions/PublicFunction/Properties/launchSettings.json
