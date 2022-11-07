@@ -44,14 +44,14 @@ To run the demo, follow these steps:
 
 (Add steps to start up the demo)
 
-1.
-2.
-3.
+1. terraform init
+2. func azure functionapp publish fn-apim-mi-demo-public --csharp
+3. func azure functionapp publish fn-apim-mi-demo-private --csharp
 
 ## Resources
 
 (Any additional resources or related projects)
 
-- Link to supporting information
+- [Managed Identity for Linux Function App Storage has limited support](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference?tabs=blob#connecting-to-host-storage-with-an-identity-preview)
 - Link to similar sample
 - ...

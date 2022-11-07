@@ -3,7 +3,10 @@
     "PublicFunction": {
       "commandName": "Project",
       "commandLineArgs": "--port 7209",
-      "launchBrowser": false
+      "environmentVariables": {
+        "ApimUrl": "https://fn-apim-mi-demo-apim.azure-api.net",
+        "ApimKey": "pjhxpWyb3dMUB4bVe0k1RFOzMad7GmTB"
+      }
     }
   }
 }

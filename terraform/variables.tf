@@ -3,5 +3,5 @@ variable "location" {
 }
 
 variable "prefix" {
-  default = "function-apim-managed-identity-demo"
+  default = "fn-apim-mi-demo"
 }
