@@ -47,8 +47,17 @@ namespace PublicFunction
             wc.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", jwt);
             wc.DefaultRequestHeaders.Add("Ocp-Apim-Subscription-Key", apiKey);
             var result = await wc.GetAsync(apiUrl);
-
-            return new OkObjectResult(new TestResponse { DateOfMessage = DateTime.Now, Message = result.Content.ReadAsStringAsync().Result });
+            var content = await result.Content.ReadAsStringAsync();
+            
+            if (result.IsSuccessStatusCode)
+            {
+                var response = Newtonsoft.Json.JsonConvert.DeserializeObject<TestResponse>(content);
+                return new OkObjectResult(response);
+            }
+            else
+            {
+                return new BadRequestObjectResult(content);
+            }
         }
     }
 
