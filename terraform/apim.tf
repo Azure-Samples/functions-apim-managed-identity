@@ -64,14 +64,11 @@ resource "azurerm_api_management_api_operation_policy" "example" {
   xml_content = <<XML
 <policies>
   <inbound>
-    <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Access token is missing or invalid." require-scheme="Bearer">
-     <openid-config url="https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0/.well-known/openid-configuration" />
-     <required-claims>
-        <claim name="appid">
-          <value>${azurerm_user_assigned_identity.public.client_id}</value>
-        </claim>
-      </required-claims>
-    </validate-jwt> 
+    <validate-azure-ad-token tenant-id="${data.azurerm_client_config.current.tenant_id}">
+      <client-application-ids>
+          <application-id>${azurerm_user_assigned_identity.public.client_id}</application-id>
+      </client-application-ids>
+    </validate-azure-ad-token>
   </inbound>
 </policies>
 XML
