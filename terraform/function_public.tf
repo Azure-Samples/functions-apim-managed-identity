@@ -1,3 +1,11 @@
+/*
+This is the public function app that we will call APIM from.
+It include the app settings that are referenced as environment variables in the function app C# code.
+`ApimKey` is the subscription key (API Key) used as an additional layer of security.
+`ApimUrl` is the URL of our APIM operation.
+`ClientId` is the client ID of our User Assigned Managed Identity. This is required by the code that generate the JWT token.
+NOTE: We use our managed identity to connect to the storage too. See the `storage_uses_managed_identity` property.
+*/
 resource "azurerm_service_plan" "public" {
   name                = "${var.prefix}-public"
   location            = var.location

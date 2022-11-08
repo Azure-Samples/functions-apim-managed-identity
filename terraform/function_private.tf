@@ -1,3 +1,6 @@
+/*
+This is the private function app that will server as our backend for APIM.
+*/
 resource "azurerm_service_plan" "private" {
   name                = "${var.prefix}-private"
   location            = var.location
