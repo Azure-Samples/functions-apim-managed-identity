@@ -26,6 +26,8 @@ This example provides the following features:
 
 ### Quickstart
 
+We deploy the infrastructure using Terraform first. Follow these steps to login to Azure and apply the Terraform.
+
 1. Open your console of choice and navigate to the the `/terraform` folder.
 1. Run `az login` to login to your Azure Account.
 1. Run `az account set --subscription [my-subscription]` where [my-subscription] is the name of your subscription.
