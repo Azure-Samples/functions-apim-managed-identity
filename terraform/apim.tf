@@ -53,7 +53,7 @@ resource "azurerm_api_management_api" "demo" {
 }
 
 /*
-The operation on out API that we will use to test. This maps to the /test method on our Function App.
+The operation on our API that we will use to test. This maps to the /test method on our Function App.
 */
 resource "azurerm_api_management_api_operation" "demo" {
   operation_id        = "user-delete"

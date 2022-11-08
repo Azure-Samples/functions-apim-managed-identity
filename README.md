@@ -11,6 +11,24 @@ This example provides the following features:
 * Public Untrusted Azure Function App.
 * Public Trusted Azure Function App.
 
+### Azure Function to APIM Authentication
+
+For the Function App to APIM authentication use case, the most important parts can be found in these files:
+
+* APIM Policy definition: [apim.tf](terraform/apim.tf)
+* Azure Function C# code: [Test.cs](src/Functions/PublicFunction/Test.cs)
+
+The Azure Function code follows these steps:
+
+1. Get the user assigned managed identity.
+1. Generate a JWT from the user assigned managed identity.
+1. Make a call to the APIM end point, passing the JWT in the Authorization Bearer header.
+
+The APIM Policy has the following attributes:
+
+* It uses the `validate-azure-ad-token` policy type.
+* It specifies that only the client ID of the user assigned managed identity for the trusted public function app can access the operation. It does this by including it in the `client-application-ids` list.
+
 ## Getting Started
 
 ### Prerequisites

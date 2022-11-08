@@ -40,7 +40,7 @@ namespace PublicFunction
                     options.ManagedIdentityClientId = clientId;
                 }
 
-                // Use the build in DefaultAzureCredential class to retrive the managed identity, filtering on client ID if user assigned
+                // Use the built in DefaultAzureCredential class to retrive the managed identity, filtering on client ID if user assigned
                 var msiCredentials = new DefaultAzureCredential(options);
                 
                 // Use the GetTokenAsync method to generate a JWT for use in a HTTP request
