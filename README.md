@@ -1,3 +1,19 @@
+---
+page_type: sample
+languages:
+- csharp
+- hcl
+products:
+- azure
+- dotnet
+- dotnet-core
+- azure-functions
+- azure-storage
+- azure-blob-storage
+- azure-active-directory
+- azure-api-management
+---
+
 # Authenticating from Functions to APIM with a Managed Identity
 
 This is example code showing how to authenticate from an Azure function to Azure API Management (APIM) using a managed identity.
