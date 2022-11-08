@@ -13,8 +13,7 @@ namespace PublicFunction
         [FunctionName("test")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
-
+            log.LogInformation("Starting function call");
             return new OkObjectResult(new TestResponse { DateOfMessage = DateTime.Now, Message = "Hello from the Private Function!" });
         }
     }
