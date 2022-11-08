@@ -95,7 +95,7 @@ resource "azurerm_api_management_api_operation_policy" "example" {
   <inbound>
     <validate-azure-ad-token tenant-id="${data.azurerm_client_config.current.tenant_id}">
       <client-application-ids>
-          <application-id>${azurerm_user_assigned_identity.public.client_id}</application-id>
+          <application-id>${azurerm_user_assigned_identity.public_trusted.client_id}</application-id>
       </client-application-ids>
     </validate-azure-ad-token>
   </inbound>

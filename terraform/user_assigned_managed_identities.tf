@@ -4,9 +4,15 @@ resource "azurerm_user_assigned_identity" "apim" {
   resource_group_name = azurerm_resource_group.apim.name
 }
 
-resource "azurerm_user_assigned_identity" "public" {
+resource "azurerm_user_assigned_identity" "public_untrusted" {
   location            = var.location
-  name                = "${var.prefix}-public"
+  name                = "${var.prefix}-public-untrusted"
+  resource_group_name = azurerm_resource_group.public.name
+}
+
+resource "azurerm_user_assigned_identity" "public_trusted" {
+  location            = var.location
+  name                = "${var.prefix}-public-trusted"
   resource_group_name = azurerm_resource_group.public.name
 }
 

@@ -1,57 +1,60 @@
-# Project Name
+# Authenticating from Functions to APIM with a Managed Identity
 
-(short, 1-3 sentenced, description of the project)
+This is example code showing how to authenticate from an Azure function to Azure API Management (APIM) using a managed identity.
 
 ## Features
 
-This project framework provides the following features:
+This example provides the following features:
 
-* Feature 1
-* Feature 2
-* ...
+* Private backend Azure Function App.
+* Azure API Management instance.
+* Public Untrusted Azure Function App.
+* Public Trusted Azure Function App.
 
 ## Getting Started
 
 ### Prerequisites
 
-(ideally very short, if any)
-
-- OS
-- Library version
-- ...
+- The Azure Functions Core Tools CLI: [Download](https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=v4%2Cwindows%2Ccsharp%2Cportal%2Cbash#install-the-azure-functions-core-tools)
+- HashiCorp Terraform CLI: [Download](https://www.terraform.io/downloads)
+- Azure CLI: [Download](https://learn.microsoft.com/en-us/cli/azure/install-azure-cli-windows?tabs=azure-cli#install-or-update)
+- An Azure Subscription: [Free Account](https://azure.microsoft.com/en-gb/free/search/)
 
 ### Installation
 
-(ideally very short)
-
-- npm install [package name]
-- mvn install
-- ...
+- Clone this repository to your local machine
 
 ### Quickstart
-(Add steps to get up and running quickly)
 
-1. git clone [repository clone url]
-2. cd [repository name]
-3. ...
+1. Open your console of choice and navigate to the the `/terraform` folder.
+1. Run `az login` to login to your Azure Account.
+1. Run `az account set --subscription [my-subscription]` where [my-subscription] is the name of your subscription.
+1. Run `terraform init` to pull down the providers.
+1. Run `terraform apply`. Take a look at the plan it generates and then type `yes` to run the plan.
+1. Take note of the outputs from Terraform as you'll need these later.
+1. Take a look at the resource groups and resources in the Azure portal.
 
+Once you are happy with the deployed resources, we need to deploy the function code. Terraform will output a script in the `deploy_script` output to help with this, or you can follow these steps.
+
+1. Navigate to the `/src/Functions/PrivateFunction` folder.
+1. Deploy the private function by running `func azure functionapp publish [private-function-name] --csharp` where [private-function-name] is the name of your private function. This will have been outputted from terraform as `private_function_name`.
+1. Navigate to the `/src/Functions/PublicFunction` folder.
+1. Deploy the untrusted public function by runnng `func azure functionapp publish [public-untrusted-function-name] --csharp` where [public-untrusted-function-name] is the name of your untrusted public function. This will have been outputted from terraform as `public_untrusted_function_name`.
+1. Deploy the trusted public function by runnung `func azure functionapp publish [public-trusted-function-name] --csharp` where [public-trusted-function-name] is the name of your trusted public function. This will have been outputted from terraform as `public_trusted_function_name`.
 
 ## Demo
 
-A demo app is included to show how to use the project.
-
 To run the demo, follow these steps:
 
-(Add steps to start up the demo)
+1. Navigate to the untrusted function app, using the url in `public_untrusted_demo_url`. You should see a 401 error like this: `{ "statusCode": 401, "message": "Invalid Azure AD JWT" }`.
+2. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function!","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
 
-1. terraform init
-2. func azure functionapp publish fn-apim-mi-demo-public --csharp
-3. func azure functionapp publish fn-apim-mi-demo-private --csharp
+As you can see the untrusted function does not have it's managed identity specified in the APIM policy, so it is not authenticated. More details on the policy can be found [here](https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD).
 
 ## Resources
 
 (Any additional resources or related projects)
 
+- [Validate AAD APIM Policy](https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD)
 - [Managed Identity for Linux Function App Storage has limited support](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference?tabs=blob#connecting-to-host-storage-with-an-identity-preview)
-- Link to similar sample
-- ...
+- [Azure Functions Core Tools reference](https://learn.microsoft.com/en-us/azure/azure-functions/functions-core-tools-reference?tabs=v2#func-azure-functionapp-fetch-app-settings)

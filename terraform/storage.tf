@@ -25,8 +25,14 @@ resource "azurerm_storage_account" "public" {
   account_replication_type = "LRS"
 }
 
-resource "azurerm_role_assignment" "public" {
+resource "azurerm_role_assignment" "public_untrusted" {
   scope                = azurerm_storage_account.public.id
   role_definition_name = "Storage Blob Data Owner"
-  principal_id         = azurerm_user_assigned_identity.public.principal_id
+  principal_id         = azurerm_user_assigned_identity.public_untrusted.principal_id
+}
+
+resource "azurerm_role_assignment" "public_trusted" {
+  scope                = azurerm_storage_account.public.id
+  role_definition_name = "Storage Blob Data Owner"
+  principal_id         = azurerm_user_assigned_identity.public_trusted.principal_id
 }
