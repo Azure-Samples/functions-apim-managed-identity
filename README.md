@@ -4,7 +4,7 @@ languages:
 - csharp
 - hcl
 name: Using Managed Identity to Authenticate Azure Functions and APIM
-description: The sample includes examples of how to authenticate from Azure Funtions to Azure API Managementand from Azure API Management to Azure Functions using Managed Identities.
+description: The sample includes examples of how to authenticate from Azure Functions to Azure API Management and from Azure API Management to Azure Functions using Managed Identities.
 products:
 - azure
 - dotnet
@@ -70,8 +70,8 @@ Once you are happy with the deployed resources, we need to deploy the function c
 1. Navigate to the `/src/Functions/PrivateFunction` folder.
 1. Deploy the private function by running `func azure functionapp publish [private-function-name] --csharp` where [private-function-name] is the name of your private function. This will have been outputted from terraform as `private_function_name`.
 1. Navigate to the `/src/Functions/PublicFunction` folder.
-1. Deploy the untrusted public function by runnng `func azure functionapp publish [public-untrusted-function-name] --csharp` where [public-untrusted-function-name] is the name of your untrusted public function. This will have been outputted from terraform as `public_untrusted_function_name`.
-1. Deploy the trusted public function by runnung `func azure functionapp publish [public-trusted-function-name] --csharp` where [public-trusted-function-name] is the name of your trusted public function. This will have been outputted from terraform as `public_trusted_function_name`.
+1. Deploy the untrusted public function by running `func azure functionapp publish [public-untrusted-function-name] --csharp` where [public-untrusted-function-name] is the name of your untrusted public function. This will have been outputted from terraform as `public_untrusted_function_name`.
+1. Deploy the trusted public function by running `func azure functionapp publish [public-trusted-function-name] --csharp` where [public-trusted-function-name] is the name of your trusted public function. This will have been outputted from terraform as `public_trusted_function_name`.
 
 ## Demos
 
@@ -130,13 +130,13 @@ The AzureAD App Registration has the following attributes:
 
 The Private Function has the following attributes:
 
-* It is configured to have AzureAD authentication enabled using the App Registration described in the previous secion
+* It is configured to have AzureAD authentication enabled using the App Registration described in the previous section
 * The enforces that only authenticated users / services can access the Function App.
 
 To run the demo, follow these steps:
 
 1. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function!","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
-2. Open Azure Portal and navigate to you APIM instance.
+2. Open Azure Portal and navigate to your APIM instance.
 3. Open the `APIs` section and click on the `Untrusted API` entry.
 4. Select the `Test Operation` and open the `Test` tab.
 5. Hit `Send` and you will get a 500 error.
