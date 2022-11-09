@@ -3,8 +3,8 @@ page_type: sample
 languages:
 - csharp
 - hcl
-name: Using Managed Identity to Authenticate between Azure Functions and APIM
-description: The sample includes example of how to authenticate between Azure Funtions and Azure API Management using Managed Identities.
+name: Using Managed Identity to Authenticate Azure Functions and APIM
+description: The sample includes examples of how to authenticate from Azure Funtions to Azure API Managementand from Azure API Management to Azure Functions using Managed Identities.
 products:
 - azure
 - dotnet
@@ -17,9 +17,9 @@ products:
 urlFragment: functions-apim-managed-identity
 ---
 
-# Authenticating from Functions to APIM with a Managed Identity
+# Authenticating Azure Functions and Azure API Management with Managed Identity
 
-This is example code showing how to authenticate from an Azure function to Azure API Management (APIM) using a managed identity.
+This is example code showing how to authenticate from Azure Functions to Azure API Management (APIM) and from Azure API Management to Azure Functions using a managed identity.
 
 ## Content
 
@@ -35,12 +35,10 @@ This is example code showing how to authenticate from an Azure function to Azure
 
 ## Features
 
-This example deploys the following resources:
+This example covers the following use cases:
 
-* Private backend Azure Function App.
-* Azure API Management instance.
-* Public Untrusted Azure Function App.
-* Public Trusted Azure Function App.
+* Azure Function App to Azure API Management authentication using a Managed Identity.
+* Azure API Management to Azure Function App authentication using a Managed Identity.
 
 ## Getting Started
 
@@ -106,6 +104,44 @@ To run the demo, follow these steps:
 2. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function!","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
 
 As you can see the untrusted function does not have it's managed identity specified in the APIM policy, so it is not authenticated. More details on the policy can be found [here](https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD).
+
+### Azure API Management to Azure Function
+
+This following diagram provides an overview of the demo for this use case:
+![Architecture diagram](docs/apim-function-managed-identity.png)
+
+For the APIM to Function App authentication use case, the most important parts can be found in these files:
+
+* APIM Policy definition: [apim.tf](terraform/apim.tf)
+* Azure Function Authentication Configuration: [function_private.tf](terraform/function_private.tf)
+* AzureAD App Registration: [azuread_application.tf](terraform/azuread_application.tf)
+
+The APIM Policy includes the following steps:
+
+1. It uses the `authentication-managed-identity` policy to retrieve the JWT to authenticate. It specified the client ID of the App Registration in the `resource` attribute and the client ID of the user assigned managed identity in the `client-id` attribute.
+2. It takes the output of the previous step and adds the JWT to the Authorization Bearer header using the `set-header` policy.
+
+The AzureAD App Registration has the following attributes:
+
+* It is configured using the instructions defined here in the [documentation](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad).
+* It is configured to require users or groups to be assigned using the `app_role_assignment_required` property.
+* It has the user assigned managed identity assigned to the default role.
+* This combination of settings ensures that only the user assigned managed identity we specified has access to the Private Function.
+
+The Private Function has the following attributes:
+
+* It is configured to have AzureAD authentication enabled using the App Registration described in the previous secion
+* The enforces that only authenticated users / services can access the Function App.
+
+To run the demo, follow these steps:
+
+1. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function!","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
+2. Open Azure Portal and navigate to you APIM instance.
+3. Open the `APIs` section and click on the `Untrusted API` entry.
+4. Select the `Test Operation` and open the `Test` tab.
+5. Hit `Send` and you will get a 500 error.
+6. Hit `Trace`, then navigate to the Trace and scroll down to the `authentication-managed-identity` section.
+7. You will see details of why a 500 error was produced and it is because the user assigned managed identity is not assigned to the App Registration.
 
 ## Resources
 

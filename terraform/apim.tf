@@ -11,7 +11,7 @@ resource "azurerm_api_management" "demo" {
 
   identity {
     type         = "UserAssigned"
-    identity_ids = [azurerm_user_assigned_identity.apim.id]
+    identity_ids = [azurerm_user_assigned_identity.apim.id, azurerm_user_assigned_identity.apim_untrusted.id]
   }
 
   sku_name = "Developer_1"
@@ -56,7 +56,7 @@ resource "azurerm_api_management_api" "demo" {
 The operation on our API that we will use to test. This maps to the /test method on our Function App.
 */
 resource "azurerm_api_management_api_operation" "demo" {
-  operation_id        = "user-delete"
+  operation_id        = "test"
   api_name            = azurerm_api_management_api.demo.name
   api_management_name = azurerm_api_management.demo.name
   resource_group_name = azurerm_resource_group.apim.name
@@ -82,6 +82,12 @@ We use the `validate-azure-ad-token` policy to validate the JWT token that is pa
 This policy uses the Authorization Bearer header by default, but can be customised if needed.
 We specifiy the Client ID of the User Assigned Managed Identity that we created for our Public Azure Function App in the `client-apllication-ids` list.
 Further details on the policy can be found here: https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD
+
+We also use the `authentication-managed-identity` policy to get a JWT token for the private function app.
+This policy specifies the resource as the client Id of our AzureAD App Registration, which will scope the token to our private function app
+It also specifies the client-id of our user assigned managed identity to ensure it chooses the correct identity.
+We then take the token and add it to the Authentication Bearer header using the `set-header` policy.
+
 NOTE: This policy could be applied at the API level instead of the individual operation.
 */
 resource "azurerm_api_management_api_operation_policy" "example" {
@@ -98,7 +104,62 @@ resource "azurerm_api_management_api_operation_policy" "example" {
           <application-id>${azurerm_user_assigned_identity.public_trusted.client_id}</application-id>
       </client-application-ids>
     </validate-azure-ad-token>
-    <authentication-managed-identity resource="https://management.azure.com/" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
+    <authentication-managed-identity resource="${azuread_application.demo.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
+    <set-header name="Authorization" exists-action="override">
+      <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
+    </set-header>
+  </inbound>
+</policies>
+XML
+}
+
+
+/*
+The API we will use to test an untrusted user assigned managed identity. 
+*/
+resource "azurerm_api_management_api" "untrusted" {
+  name                = "untrusted"
+  resource_group_name = azurerm_resource_group.apim.name
+  api_management_name = azurerm_api_management.demo.name
+  revision            = "1"
+  display_name        = "Untrusted API"
+  path                = "untrusted"
+  protocols           = ["https"]
+
+  service_url = "https://${azurerm_windows_function_app.private.default_hostname}/api"
+}
+
+/*
+The operation on our API that we will use to test an untrusted user assigned managed identity. 
+*/
+resource "azurerm_api_management_api_operation" "untrusted" {
+  operation_id        = "test"
+  api_name            = azurerm_api_management_api.untrusted.name
+  api_management_name = azurerm_api_management.demo.name
+  resource_group_name = azurerm_resource_group.apim.name
+  display_name        = "Test Operation"
+  method              = "GET"
+  url_template        = "/test"
+  description         = "Get test data from the private function."
+
+  response {
+    status_code = 200
+  }
+}
+
+/*
+This policy differs in that it uses our untrusted user assigned managed identity to get the token.
+*/
+resource "azurerm_api_management_api_operation_policy" "untrusted" {
+  api_name            = azurerm_api_management_api_operation.untrusted.api_name
+  api_management_name = azurerm_api_management_api_operation.untrusted.api_management_name
+  resource_group_name = azurerm_api_management_api_operation.untrusted.resource_group_name
+  operation_id        = azurerm_api_management_api_operation.untrusted.operation_id
+
+  xml_content = <<XML
+<policies>
+  <inbound>
+    <authentication-managed-identity resource="${azuread_application.demo.application_id}" client-id="${azurerm_user_assigned_identity.apim_untrusted.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
     <set-header name="Authorization" exists-action="override">
       <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
     </set-header>
