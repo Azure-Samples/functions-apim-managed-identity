@@ -114,7 +114,7 @@ For the APIM to Function App authentication use case, the most important parts c
 
 * APIM Policy definition: [apim.tf](terraform/apim.tf)
 * Azure Function Authentication Configuration: [function_private.tf](terraform/function_private.tf)
-* AzureAD App Registration: [azuread_application.tf](terraform/azuread_application.tf)
+* AzureAD App Registration: [azuread_applications.tf](terraform/azuread_applications.tf)
 
 The APIM Policy includes the following steps:
 
