@@ -30,9 +30,9 @@ resource "azurerm_windows_function_app" "public_untrusted" {
   }
 
   app_settings = {
-    ApimKey = random_password.apim.result
-    ApimUrl = "${azurerm_api_management.demo.gateway_url}/demo/test"
-    ClientId = azurerm_user_assigned_identity.public_untrusted.client_id
+    ApimKey                  = random_password.apim.result
+    ApimUrl                  = "${azurerm_api_management.demo.gateway_url}/demo/test"
+    ClientId                 = azurerm_user_assigned_identity.public_untrusted.client_id
     WEBSITE_RUN_FROM_PACKAGE = "1"
   }
 
@@ -58,9 +58,9 @@ resource "azurerm_windows_function_app" "public_trusted" {
   }
 
   app_settings = {
-    ApimKey = random_password.apim.result
-    ApimUrl = "${azurerm_api_management.demo.gateway_url}/demo/test"
-    ClientId = azurerm_user_assigned_identity.public_trusted.client_id
+    ApimKey                  = random_password.apim.result
+    ApimUrl                  = "${azurerm_api_management.demo.gateway_url}/demo/test"
+    ClientId                 = azurerm_user_assigned_identity.public_trusted.client_id
     WEBSITE_RUN_FROM_PACKAGE = "1"
   }
 

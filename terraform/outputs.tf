@@ -1,7 +1,7 @@
 output "private_function_name" {
   value = azurerm_windows_function_app.private.name
 }
-  
+
 output "public_untrusted_function_name" {
   value = azurerm_windows_function_app.public_untrusted.name
 }

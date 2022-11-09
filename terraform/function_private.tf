@@ -1,5 +1,6 @@
 /*
 This is the private function app that will server as our backend for APIM.
+The private function is configured to use AzureAD Authentication via an App Registration. See `auth_settings`.
 */
 resource "azurerm_service_plan" "private" {
   name                = "${var.prefix}-private"
@@ -21,6 +22,14 @@ resource "azurerm_windows_function_app" "private" {
   identity {
     type         = "UserAssigned"
     identity_ids = [azurerm_user_assigned_identity.private.id]
+  }
+
+  auth_settings {
+    enabled = true
+    active_directory {
+      client_id     = azuread_application.demo.application_id
+      client_secret = azuread_application_password.demo.value
+    }
   }
 
   app_settings = {
