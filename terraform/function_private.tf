@@ -23,6 +23,14 @@ resource "azurerm_windows_function_app" "private" {
     identity_ids = [azurerm_user_assigned_identity.private.id]
   }
 
+  auth_settings {
+    enabled = true
+    microsoft {
+      client_id     = azuread_application.demo.application_id
+      client_secret = azuread_application_password.demo.value
+    }
+  }
+
   app_settings = {
     WEBSITE_RUN_FROM_PACKAGE = "1"
   }

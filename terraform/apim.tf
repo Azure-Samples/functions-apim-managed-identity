@@ -98,6 +98,10 @@ resource "azurerm_api_management_api_operation_policy" "example" {
           <application-id>${azurerm_user_assigned_identity.public_trusted.client_id}</application-id>
       </client-application-ids>
     </validate-azure-ad-token>
+    <authentication-managed-identity resource="https://management.azure.com/" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
+    <set-header name="Authorization" exists-action="override">
+      <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
+    </set-header>
   </inbound>
 </policies>
 XML
