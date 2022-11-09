@@ -146,5 +146,7 @@ To run the demo, follow these steps:
 ## Resources
 
 - [Validate AAD APIM Policy](https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD)
+- [Authenticate with Managed Identity APIM Policy](https://learn.microsoft.com/en-us/azure/api-management/api-management-authentication-policies#ManagedIdentity)
 - [Managed Identity for Linux Function App Storage has limited support](https://learn.microsoft.com/en-us/azure/azure-functions/functions-reference?tabs=blob#connecting-to-host-storage-with-an-identity-preview)
 - [Azure Functions Core Tools reference](https://learn.microsoft.com/en-us/azure/azure-functions/functions-core-tools-reference?tabs=v2#func-azure-functionapp-fetch-app-settings)
+- [Azure Functions AAD Authentication](https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad)
