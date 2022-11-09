@@ -3,6 +3,8 @@ page_type: sample
 languages:
 - csharp
 - hcl
+name: Using Managed Identity to Authenticate between Azure Functions and APIM
+description: The sample includes example of how to authenticate between Azure Funtions and Azure API Management using Managed Identities.
 products:
 - azure
 - dotnet
@@ -12,11 +14,24 @@ products:
 - azure-blob-storage
 - azure-active-directory
 - azure-api-management
+urlFragment: functions-apim-managed-identity
 ---
 
 # Authenticating from Functions to APIM with a Managed Identity
 
 This is example code showing how to authenticate from an Azure function to Azure API Management (APIM) using a managed identity.
+
+## Content
+
+| File/folder | Description |
+|-------------|-------------|
+| `src`       | Azure Function C# Code |
+| `terraform` | Terraform IAC Code |
+| `.gitignore` | Define what to ignore at commit time. |
+| `CHANGELOG.md` | List of changes to the sample. |
+| `CONTRIBUTING.md` | Guidelines for contributing to the sample. |
+| `README.md` | This README file. |
+| `LICENSE.md` | The license for the sample. |
 
 ## Features
 
