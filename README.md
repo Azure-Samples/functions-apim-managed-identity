@@ -19,6 +19,8 @@ urlFragment: functions-apim-managed-identity
 
 # Authenticating Azure Functions and Azure API Management with Managed Identity
 
+[![Build Code](https://github.com/Azure-Samples/functions-apim-managed-identity/actions/workflows/buildcode.yml/badge.svg)](https://github.com/Azure-Samples/functions-apim-managed-identity/actions/workflows/buildcode.yml)
+
 This is example code showing how to authenticate from Azure Functions to Azure API Management (APIM) and from Azure API Management to Azure Functions using a managed identity.
 
 ## Content
