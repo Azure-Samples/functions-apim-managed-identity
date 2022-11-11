@@ -17,3 +17,9 @@ provider "azurerm" {
 
 provider "azuread" {
 }
+
+/*
+This data source is used to retrieve information about the account that the azurerm provider has been configured with.
+In this case we are using it to retrive the Azure Tenant ID.
+*/
+data "azurerm_client_config" "current" {}

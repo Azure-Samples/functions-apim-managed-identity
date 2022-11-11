@@ -41,6 +41,11 @@ resource "azurerm_windows_function_app" "public_untrusted" {
       dotnet_version = "6"
     }
   }
+
+  provisioner "local-exec" {
+    working_dir = "${path.root}/../src/Functions/PublicFunction"
+    command = "func azure functionapp publish ${azurerm_windows_function_app.public_untrusted.name} --csharp"
+  }
 }
 
 resource "azurerm_windows_function_app" "public_trusted" {
@@ -68,5 +73,10 @@ resource "azurerm_windows_function_app" "public_trusted" {
     application_stack {
       dotnet_version = "6"
     }
+  }
+
+  provisioner "local-exec" {
+    working_dir = "${path.root}/../src/Functions/PublicFunction"
+    command = "func azure functionapp publish ${azurerm_windows_function_app.public_trusted.name} --csharp"
   }
 }

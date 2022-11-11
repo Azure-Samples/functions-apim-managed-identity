@@ -55,7 +55,14 @@ resource "azuread_app_role_assignment" "demo" {
 /*
 The secret is required for the Private Function App to configure authentication.
 */
+resource "time_rotating" "demo" {
+  rotation_days = 7
+}
+
 resource "azuread_application_password" "demo" {
   application_object_id = azuread_application.demo.object_id
   display_name          = "${var.prefix}-app-secret"
+  rotate_when_changed = {
+    rotation = time_rotating.demo.id
+  }
 }
