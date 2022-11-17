@@ -2,7 +2,7 @@
 The API we will use to test that leverages an App Registration, so we can use groups. It is configured with a backend that points to our Private Function App.
 */
 resource "azurerm_api_management_api" "trusted_group" {
-  name                = "demo"
+  name                = "trusted-group"
   resource_group_name = azurerm_resource_group.apim.name
   api_management_name = azurerm_api_management.demo.name
   revision            = "1"
@@ -54,12 +54,21 @@ resource "azurerm_api_management_api_operation_policy" "trusted_group" {
   xml_content = <<XML
 <policies>
   <inbound>
-    <validate-azure-ad-token tenant-id="${data.azurerm_client_config.current.tenant_id}">
-      <client-application-ids>
-          <application-id>${azurerm_user_assigned_identity.public_trusted.client_id}</application-id>
-      </client-application-ids>
-    </validate-azure-ad-token>
-    <authentication-managed-identity resource="${azuread_application.demo.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
+    <validate-jwt header-name="Authorization" failed-validation-httpcode="401" failed-validation-error-message="Unauthorized. Access token is missing or invalid." require-scheme="Bearer">
+     <openid-config url="https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0/.well-known/openid-configuration" />
+     <audiences>
+         <audience>api://${var.prefix}-apim</audience>
+     </audiences>
+     <issuers>
+         <issuer>https://sts.windows.net/${data.azurerm_client_config.current.tenant_id}/</issuer>
+     </issuers>
+     <!--<required-claims>
+         <claim name="roles" match="any">
+             <value>example</value>
+         </claim>
+     </required-claims>-->
+    </validate-jwt> 
+    <authentication-managed-identity resource="${azuread_application.function.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
     <set-header name="Authorization" exists-action="override">
       <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
     </set-header>

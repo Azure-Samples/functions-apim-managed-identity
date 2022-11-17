@@ -7,6 +7,10 @@ It include the app settings that are referenced as environment variables in the 
 `ClientId` is the client ID of our User Assigned Managed Identity. This is required by the code that generate the JWT token.
 NOTE: We use our managed identity to connect to the storage too. See the `storage_uses_managed_identity` property.
 */
+locals {
+  public_function_path = "${path.root}/../src/Functions/PublicFunction"
+}
+
 resource "azurerm_service_plan" "public" {
   name                = "${var.prefix}-public"
   location            = var.location
@@ -16,6 +20,9 @@ resource "azurerm_service_plan" "public" {
 }
 
 resource "azurerm_windows_function_app" "public_untrusted" {
+  depends_on = [
+    azurerm_windows_function_app.private
+  ]
   name                = "${var.prefix}-public-untrusted"
   location            = var.location
   resource_group_name = azurerm_resource_group.public.name
@@ -31,7 +38,7 @@ resource "azurerm_windows_function_app" "public_untrusted" {
 
   app_settings = {
     ApimKey                  = random_password.apim.result
-    ApimUrl                  = "${azurerm_api_management.demo.gateway_url}/demo/test"
+    ApimUrl                  = azurerm_api_management.demo.gateway_url
     ClientId                 = azurerm_user_assigned_identity.public_untrusted.client_id
     WEBSITE_RUN_FROM_PACKAGE = "1"
   }
@@ -43,12 +50,16 @@ resource "azurerm_windows_function_app" "public_untrusted" {
   }
 
   provisioner "local-exec" {
-    working_dir = "${path.root}/../src/Functions/PublicFunction"
-    command = "func azure functionapp publish ${azurerm_windows_function_app.public_untrusted.name} --csharp"
+    working_dir = local.public_function_path
+    command     = format(local.powershell_deploy, azurerm_windows_function_app.public_untrusted.name)
+    interpreter = ["PowerShell", "-Command"]
   }
 }
 
 resource "azurerm_windows_function_app" "public_trusted" {
+  depends_on = [
+    azurerm_windows_function_app.public_untrusted
+  ]
   name                = "${var.prefix}-public-trusted"
   location            = var.location
   resource_group_name = azurerm_resource_group.public.name
@@ -64,8 +75,11 @@ resource "azurerm_windows_function_app" "public_trusted" {
 
   app_settings = {
     ApimKey                  = random_password.apim.result
-    ApimUrl                  = "${azurerm_api_management.demo.gateway_url}/demo/test"
+    ApimUrl                  = azurerm_api_management.demo.gateway_url
     ClientId                 = azurerm_user_assigned_identity.public_trusted.client_id
+    TargetAppId              = azuread_application.apim.application_id
+    TargetAppUri             = "api://${var.prefix}-apim"
+    TenantId                 = data.azurerm_client_config.current.tenant_id
     WEBSITE_RUN_FROM_PACKAGE = "1"
   }
 
@@ -76,7 +90,8 @@ resource "azurerm_windows_function_app" "public_trusted" {
   }
 
   provisioner "local-exec" {
-    working_dir = "${path.root}/../src/Functions/PublicFunction"
-    command = "func azure functionapp publish ${azurerm_windows_function_app.public_trusted.name} --csharp"
+    working_dir = local.public_function_path
+    command     = format(local.powershell_deploy, azurerm_windows_function_app.public_trusted.name)
+    interpreter = ["PowerShell", "-Command"]
   }
 }

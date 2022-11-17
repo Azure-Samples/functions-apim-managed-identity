@@ -12,9 +12,9 @@ using System.Threading.Tasks;
 
 namespace PublicFunction
 {
-    public class Test
+    public class Simple
     {
-        [FunctionName("test")]
+        [FunctionName("simple")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
         {
             log.LogInformation("Starting function call");
@@ -26,7 +26,7 @@ namespace PublicFunction
             var apiKey = Environment.GetEnvironmentVariable("ApimKey");
             
             // The specific url and route to call in APIM (e.g. https://myapim.azure-api.net/demo/test)
-            var apiUrl = Environment.GetEnvironmentVariable("ApimUrl");
+            var apiUrl = $"{Environment.GetEnvironmentVariable("ApimUrl")}/trusted-simple/test";
       
             log.LogInformation($"API Url: {apiUrl}");
 
@@ -40,7 +40,7 @@ namespace PublicFunction
                     options.ManagedIdentityClientId = clientId;
                 }
 
-                // Use the built in DefaultAzureCredential class to retrive the managed identity, filtering on client ID if user assigned
+                // Use the built in DefaultAzureCredential class to retrieve the managed identity, filtering on client ID if user assigned
                 var msiCredentials = new DefaultAzureCredential(options);
                 
                 // Use the GetTokenAsync method to generate a JWT for use in a HTTP request
@@ -78,13 +78,6 @@ namespace PublicFunction
             }
         }
     }
-
-    public class TestResponse
-    {
-        public string Message { get; set; }
-        public DateTime DateOfMessage { get; set; }
-    }
-
 }
 
 

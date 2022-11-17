@@ -27,7 +27,7 @@ resource "azurerm_windows_function_app" "private" {
   auth_settings {
     enabled = true
     active_directory {
-      client_id                  = azuread_application.demo.application_id
+      client_id                  = azuread_application.function.application_id
       client_secret_setting_name = "AZURE_AD_AUTH_CLIENT_SECRET" # We use an app setting to store a key vault reference.
     }
   }
@@ -35,7 +35,7 @@ resource "azurerm_windows_function_app" "private" {
   key_vault_reference_identity_id = azurerm_user_assigned_identity.private.id # This is required to access Key Vault with the User Assigned Managed Identity
 
   app_settings = {
-    WEBSITE_RUN_FROM_PACKAGE    = "1"                                                                      
+    WEBSITE_RUN_FROM_PACKAGE    = "1"
     AZURE_AD_AUTH_CLIENT_SECRET = "@Microsoft.KeyVault(VaultName=${azurerm_key_vault.demo.name};SecretName=${azurerm_key_vault_secret.demo.name})" # This is a reference to the client_secret stored in key vault
   }
 
@@ -47,6 +47,7 @@ resource "azurerm_windows_function_app" "private" {
 
   provisioner "local-exec" {
     working_dir = "${path.root}/../src/Functions/PrivateFunction"
-    command = "func azure functionapp publish ${azurerm_windows_function_app.private.name} --csharp"
+    command     = format(local.powershell_deploy, azurerm_windows_function_app.private.name)
+    interpreter = ["PowerShell", "-Command"]
   }
 }

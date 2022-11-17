@@ -2,7 +2,7 @@
 The API we will use to test simple authentication that doesn't involve an app registration. It is configured with a backend that points to our Private Function App.
 */
 resource "azurerm_api_management_api" "trusted_simple" {
-  name                = "demo"
+  name                = "trusted-simple"
   resource_group_name = azurerm_resource_group.apim.name
   api_management_name = azurerm_api_management.demo.name
   revision            = "1"
@@ -59,7 +59,7 @@ resource "azurerm_api_management_api_operation_policy" "trusted_simple" {
           <application-id>${azurerm_user_assigned_identity.public_trusted.client_id}</application-id>
       </client-application-ids>
     </validate-azure-ad-token>
-    <authentication-managed-identity resource="${azuread_application.demo.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
+    <authentication-managed-identity resource="${azuread_application.function.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
     <set-header name="Authorization" exists-action="override">
       <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
     </set-header>
