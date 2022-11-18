@@ -26,6 +26,8 @@ namespace PublicFunction
 
             var targetAppUri = Environment.GetEnvironmentVariable("TargetAppUri");
 
+            var targetAppId = Environment.GetEnvironmentVariable("TargetAppId");
+
             var tenantId = Environment.GetEnvironmentVariable("TenantId");
             
             // The subscription key (API Key) for Azure API Management (APIM)
@@ -54,7 +56,7 @@ namespace PublicFunction
                 var msiCredentials = new DefaultAzureCredential(options);
         
                 // Use the GetTokenAsync method to generate a JWT for use in a HTTP request
-                var accessToken = await msiCredentials.GetTokenAsync(new TokenRequestContext(new[] { targetAppUri }));
+                var accessToken = await msiCredentials.GetTokenAsync(new TokenRequestContext(new[] { $"{targetAppUri}/.default" }));
                 jwt = accessToken.Token;
                 log.LogInformation("Got the JWT");
                 log.LogInformation(jwt);

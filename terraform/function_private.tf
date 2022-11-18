@@ -27,7 +27,7 @@ resource "azurerm_windows_function_app" "private" {
   auth_settings {
     enabled = true
     active_directory {
-      client_id                  = azuread_application.function.application_id
+      client_id                  = azuread_application.function_private.application_id
       client_secret_setting_name = "AZURE_AD_AUTH_CLIENT_SECRET" # We use an app setting to store a key vault reference.
     }
   }

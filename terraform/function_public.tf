@@ -77,8 +77,8 @@ resource "azurerm_windows_function_app" "public_trusted" {
     ApimKey                  = random_password.apim.result
     ApimUrl                  = azurerm_api_management.demo.gateway_url
     ClientId                 = azurerm_user_assigned_identity.public_trusted.client_id
-    TargetAppId              = azuread_application.apim.application_id
-    TargetAppUri             = "api://${var.prefix}-apim"
+    TargetAppId              = azuread_application.function_public.application_id
+    TargetAppUri             = "api://${var.prefix}-function-public"
     TenantId                 = data.azurerm_client_config.current.tenant_id
     WEBSITE_RUN_FROM_PACKAGE = "1"
   }

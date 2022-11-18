@@ -68,7 +68,7 @@ resource "azurerm_api_management_api_operation_policy" "trusted_group" {
          </claim>
      </required-claims>-->
     </validate-jwt> 
-    <authentication-managed-identity resource="${azuread_application.function.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
+    <authentication-managed-identity resource="${azuread_application.function_private.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
     <set-header name="Authorization" exists-action="override">
       <value>@("Bearer " + (string)context.Variables["msi-access-token"])</value>
     </set-header>

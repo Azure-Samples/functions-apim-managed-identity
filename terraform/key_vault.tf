@@ -33,6 +33,6 @@ resource "azurerm_key_vault" "demo" {
 
 resource "azurerm_key_vault_secret" "demo" {
   name         = "app-registration-client-secret"
-  value        = azuread_application_password.function.value
+  value        = azuread_application_password.function_private.value
   key_vault_id = azurerm_key_vault.demo.id
 }
