@@ -42,3 +42,9 @@ resource "azuread_app_role_assignment" "function_public" {
   principal_object_id = azuread_group.apim.object_id
   resource_object_id  = azuread_service_principal.function_public.object_id
 }
+
+resource "azuread_app_role_assignment" "function_public_test" {
+  app_role_id         = "00000000-0000-0000-0000-000000000000"
+  principal_object_id = azurerm_user_assigned_identity.public_trusted.principal_id
+  resource_object_id  = azuread_service_principal.function_public.object_id
+}

@@ -8,6 +8,7 @@ using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Security.Principal;
 using System.Threading.Tasks;
@@ -16,6 +17,13 @@ namespace PublicFunction
 {
     public class Group
     {
+        public static async Task<HttpResponseMessage> GetToken(string resource, string apiversion, string clientId)  
+        {
+            HttpClient client = new HttpClient();   
+            client.DefaultRequestHeaders.Add("Secret", Environment.GetEnvironmentVariable("MSI_SECRET"));
+            return await client.GetAsync(String.Format("{0}/?resource={1}&api-version={2}&clientid={3}", Environment.GetEnvironmentVariable("MSI_ENDPOINT"), resource, apiversion,clientId));
+        }
+
         [FunctionName("group")]
         public static async Task<IActionResult> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, ILogger log)
         {
@@ -42,6 +50,16 @@ namespace PublicFunction
             var jwt = string.Empty;
             try
             {
+                //Test getting the token directly from the MSI endpoint
+                var token = await GetToken(targetAppUri, "2017-09-01", clientId);
+                var tokenString = await token.Content.ReadAsStringAsync();
+                log.LogInformation($"Token from Direct MSI Call: {tokenString}");
+
+                // Test using the AzureServiceTokenProvider class to retrieve the managed identity
+                var azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId}");
+                jwt = await azureServiceTokenProvider.GetAccessTokenAsync(targetAppUri, tenantId);
+                log.LogInformation($"Token from AzureServiceTokenProvider: {jwt}");
+
                 // If we are using a user assigned managed identity (as opposed to a system assigned managed identity) then we must provide the client ID
                 var options = new DefaultAzureCredentialOptions();
                 if(!string.IsNullOrWhiteSpace(clientId))
@@ -49,17 +67,15 @@ namespace PublicFunction
                     options.ManagedIdentityClientId = clientId;
                 }
 
-                //var azureServiceTokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId}");
-                //jwt = await azureServiceTokenProvider.GetAccessTokenAsync(targetAppUri, tenantId);
-
                 // Use the built in DefaultAzureCredential class to retrieve the managed identity, filtering on client ID if user assigned
-                var msiCredentials = new DefaultAzureCredential(options);
-        
+                var msiCredentials = new ManagedIdentityCredential(clientId); // DefaultAzureCredential(options);
+                
                 // Use the GetTokenAsync method to generate a JWT for use in a HTTP request
                 var accessToken = await msiCredentials.GetTokenAsync(new TokenRequestContext(new[] { $"{targetAppUri}/.default" }));
                 jwt = accessToken.Token;
+
                 log.LogInformation("Got the JWT");
-                log.LogInformation(jwt);
+                log.LogInformation($"Token from ManagedIdentityCredential: {jwt}");
             }
             catch (Exception ex)
             {

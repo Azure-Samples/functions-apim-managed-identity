@@ -9,6 +9,10 @@ resource "azuread_application" "apim" {
   display_name    = "${var.prefix}-apim"
   identifier_uris = ["api://${var.prefix}-apim"]
 
+  api {
+    requested_access_token_version = 2
+  }
+
   web {
     redirect_uris = ["https://${var.prefix}-apim.azure-api.net/"]
     homepage_url  = "https://${var.prefix}-apim.azure-api.net"
@@ -37,4 +41,10 @@ resource "azuread_service_principal" "apim" {
   feature_tags {
     enterprise = true
   }
+}
+
+resource "azuread_app_role_assignment" "apim" {
+  app_role_id         = azuread_service_principal.apim.app_role_ids["example"]
+  principal_object_id = azuread_group.apim.object_id
+  resource_object_id  = azuread_service_principal.apim.object_id
 }
