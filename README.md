@@ -42,6 +42,14 @@ This example covers the following use cases:
 * Azure Function App to Azure API Management authentication using a Managed Identity.
 * Azure API Management to Azure Function App authentication using a Managed Identity.
 
+## Important Notes
+
+There are currently some limitations when using Managed Identity for these use cases that you should be aware of:
+
+1. Access Tokens are cached for 24 hours and there is no way to override this. This means that any changes you make to your App Registration with regards to app roles, claims, etc will not be available in the token generated from the MSI enabled app for up to 24 hours. This can be quite problematic when developing, but should not have a significant impact on production workloads. More details on this limitation can be found [here](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/managed-identities-faq#are-managed-identities-tokens-cached) and [here](https://learn.microsoft.com/en-us/azure/active-directory/managed-identities-azure-resources/managed-identity-best-practice-recommendations#limitation-of-using-managed-identities-for-authorization). HINT: When developing with Terraform, you can just delete your Managed Identity and let Terraform re-create it to refresh your token.
+
+2. Managed Identities (any Service Principal) cannot be assigned to an App Registration App Role via an AzureAD Group. This is a major limitation for customers that want to use groups across the board, but it does not mean you can't use Managed Identities. It simply means you have assign the Managed Identity directly the the App Registration App Role. More details on this limitation can be found [here](https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-add-app-roles-in-azure-ad-apps#declare-roles-for-an-application). Specifically the sentence `Currently, if you add a service principal to a group, and then assign an app role to that group, Azure AD doesn't add the roles claim to tokens it issues.`.
+
 ## Getting Started
 
 ### Prerequisites
@@ -85,19 +93,29 @@ For the Function App to APIM authentication use case, the most important parts c
 The Azure Function code follows these steps:
 
 1. Get the user assigned managed identity.
-1. Generate a JWT from the user assigned managed identity.
+1. Generate a JWT from the user assigned managed identity, passing in the App Registration scope in the case of the `group` example.
 1. Make a call to the APIM end point, passing the JWT in the Authorization Bearer header.
 
-The APIM Policy has the following attributes:
+There are two different examples of the APIM Policy:
+
+The `simple` function does not use an App Registration and generates a generic JWT for itself:
 
 * It uses the `validate-azure-ad-token` policy type.
 * It specifies that only the client ID of the user assigned managed identity for the trusted public function app can access the operation. It does this by including it in the `client-application-ids` list.
 
+The `group` function uses an App Registration so it can be assigned an App Role and pass that claim to APIM:
+
+* It uses the `validate-jwt` policy type.
+* It specifies that only the App Registration audience is valid. It does this by including it in the `audiences` list.
+* It specifies that only the App Role claim assigned to the Managed Identity is valid. It does this by including it in the `required-claims` list.
+
 To run the demo, follow these steps:
 
-1. Navigate to the untrusted function app, using the url in `public_untrusted_demo_url`. You should see a 401 error like this: `{ "statusCode": 401, "message": "Invalid Azure AD JWT" }`.
-2. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function!","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
-
+1. Simple Untrusted: Navigate to the untrusted function app, using the url in `public_untrusted_simple_demo_url`. You should see a 401 error like this: `{ "statusCode": 401, "message": "Invalid Azure AD JWT" }`.
+1. Simple Trusted: Navigate to the trusted function app, using the url in `public_trusted_simple_demo_url`. You should see a successful call like this: `{"message":"Hello from the Private Function! The APIM Managed Identity has been assigned to the role: Private.Example","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
+1. Group Untrusted: Navigate to the untrusted function app, using the url in `public_untrusted_group_demo_url`. You should see a 401 error like this: `{ "statusCode": 401, "message": "Unauthorized. Access token is missing or invalid." }`.
+1. Group Trusted: Navigate to the trusted function app, using the url in `public_trusted_group_demo_url`. You should see a successful call like this: `{"message":"Hello from the Private Function! The APIM Managed Identity has been assigned to the role: Private.Example","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}
+ 
 As you can see the untrusted function does not have it's managed identity specified in the APIM policy, so it is not authenticated. More details on the policy can be found [here](https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD).
 
 ### Azure API Management to Azure Function
@@ -130,7 +148,7 @@ The Private Function has the following attributes:
 
 To run the demo, follow these steps:
 
-1. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function!","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
+1. Navigate to the trusted function app, using the url in `public_trusted_demo_url`.You should see a successful call like this: `{"message":"Hello from the Private Function! The APIM Managed Identity has been assigned to the role: Private.Example","dateOfMessage":"2022-11-08T12:14:59.4735675+00:00"}`.
 2. Open Azure Portal and navigate to your APIM instance.
 3. Open the `APIs` section and click on the `Untrusted API` entry.
 4. Select the `Test Operation` and open the `Test` tab.
