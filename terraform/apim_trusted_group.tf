@@ -33,15 +33,14 @@ resource "azurerm_api_management_api_operation" "trusted_group" {
 
 /*
 This is the policy that will be applied to our operation.
-We use the `validate-azure-ad-token` policy to validate the JWT token that is passed in the Authorization Bearer header. 
-This policy uses the Authorization Bearer header by default, but can be customised if needed.
-We specifiy the Client ID of the User Assigned Managed Identity that we created for our Public Azure Function App in the `client-apllication-ids` list.
-Further details on the policy can be found here: https://learn.microsoft.com/en-us/azure/api-management/api-management-access-restriction-policies#ValidateAAD
 
-We also use the `authentication-managed-identity` policy to get a JWT token for the private function app.
-This policy specifies the resource as the client Id of our AzureAD App Registration, which will scope the token to our private function app
-It also specifies the client-id of our user assigned managed identity to ensure it chooses the correct identity.
-We then take the token and add it to the Authentication Bearer header using the `set-header` policy.
+We are using the `validate-jwt` policy as it does not require you to specify the application ID of the Managed Identity and instead can use the audience claim to validate the token.
+
+The example includes two `audience` claims. Depending on which version (V1 or V2) you are using you may get either the application URI or the application ID in the JWT `aud` claim. Both are equally secure.
+
+The example includes two `issuer` claims. Again, depending on which version (V1 or V2) you are using you may get either of these issuers. Both are equally secure.
+
+The example includes the App Role claim in the `required-claims` section, but also shows how you could use an AzureAD group as a role claim instead if that is a preferred method. Group claims are always emitted as a GUID when using AzureAD groups.
 
 NOTE: This policy could be applied at the API level instead of the individual operation.
 */
@@ -58,15 +57,18 @@ resource "azurerm_api_management_api_operation_policy" "trusted_group" {
      <openid-config url="https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0/.well-known/openid-configuration" />
      <audiences>
          <audience>api://${var.prefix}-apim</audience>
+         <audience>${azuread_application.apim.application_id}</audience>
      </audiences>
      <issuers>
          <issuer>https://sts.windows.net/${data.azurerm_client_config.current.tenant_id}/</issuer>
+         <issuer>https://login.microsoftonline.com/${data.azurerm_client_config.current.tenant_id}/v2.0</issuer>
      </issuers>
-     <!--<required-claims>
+     <required-claims>
          <claim name="roles" match="any">
-             <value>example</value>
+             <value>${local.apim_app_role_name}</value>
+             <value>${azuread_group.apim.object_id}</value>
          </claim>
-     </required-claims>-->
+     </required-claims>
     </validate-jwt> 
     <authentication-managed-identity resource="${azuread_application.function_private.application_id}" client-id="${azurerm_user_assigned_identity.apim.client_id}" output-token-variable-name="msi-access-token" ignore-error="false"/>
     <set-header name="Authorization" exists-action="override">

@@ -2,7 +2,12 @@
 This is the AzureAD App Registration that is used to implement AzureAD authentication on our Private Function App.
 The confiuration follows the instuctions found here: https://learn.microsoft.com/en-us/azure/app-service/configure-authentication-provider-aad
 */
-resource "random_uuid" "function_private" {}
+locals {
+  private_app_role_name = "Private.Example"
+}
+
+resource "random_uuid" "function_private_scope" {}
+resource "random_uuid" "function_private_role" {}
 
 resource "azuread_application" "function_private" {
   display_name = "${var.prefix}-function-private"
@@ -16,7 +21,7 @@ resource "azuread_application" "function_private" {
   }
   api {
     oauth2_permission_scope {
-      id                         = random_uuid.function_private.result
+      id                         = random_uuid.function_private_scope.result
       value                      = "user_impersonation"
       admin_consent_description  = "Allow the application to access ${var.prefix}-private on behalf of the signed-in user."
       admin_consent_display_name = "Access ${var.prefix}-private"
@@ -32,6 +37,27 @@ resource "azuread_application" "function_private" {
       type = "Role"
     }
   }
+
+  app_role {
+    allowed_member_types = ["Application","User"]
+    description          = "Example role."
+    display_name         = "Example role"
+    id                   = random_uuid.function_private_role.result
+    enabled              = true
+    value                = local.private_app_role_name
+  }
+
+  optional_claims {
+    access_token {
+      name = "groups"
+    }
+    id_token {
+      name = "groups"
+    }
+    saml2_token {
+      name = "groups"
+    }
+  }
 }
 
 /*
@@ -42,12 +68,25 @@ resource "azuread_service_principal" "function_private" {
   app_role_assignment_required = true
   feature_tags {
     enterprise = true
-    gallery    = true
+    gallery    = false
   }
 }
 
-resource "azuread_app_role_assignment" "function_private" {
-  app_role_id         = "00000000-0000-0000-0000-000000000000" # Default role
+/*
+Note although a managed identity (service principal) can be assigned to a group and the group can be assigned to an App Registration, this scenario is not currently supported.
+As such, this group assignment currently has not effect in our example and the individual assignment `azuread_app_role_assignment.function_private_managed_identity` is required for the demo to function.
+See this article for details: https://learn.microsoft.com/en-us/azure/active-directory/develop/howto-add-app-roles-in-azure-ad-apps#declare-roles-for-an-application
+"Currently, if you add a service principal to a group, and then assign an app role to that group, Azure AD doesn't add the roles claim to tokens it issues."
+*/
+resource "azuread_app_role_assignment" "function_private_group" {
+  app_role_id         = azuread_service_principal.function_private.app_role_ids[local.private_app_role_name]
+  principal_object_id = azuread_group.private.object_id
+  resource_object_id  = azuread_service_principal.function_private.object_id
+}
+
+
+resource "azuread_app_role_assignment" "function_private_managed_identity" {
+  app_role_id         = azuread_service_principal.function_private.app_role_ids[local.private_app_role_name]
   principal_object_id = azurerm_user_assigned_identity.apim.principal_id
   resource_object_id  = azuread_service_principal.function_private.object_id
 }

@@ -13,7 +13,7 @@ locals {
         $result = $null
       }
     }
-    Write-Host "Found the function app"
+    Write-Host "Found the function app, deploying the code now..."
     try
     {
         $result = func azure functionapp publish $functionAppName --csharp
