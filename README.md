@@ -8,7 +8,6 @@ description: The sample includes examples of how to authenticate from Azure Func
 products:
 - azure
 - dotnet
-- dotnet-core
 - azure-functions
 - azure-storage
 - azure-blob-storage
