@@ -11,7 +11,6 @@ products:
 - azure-functions
 - azure-storage
 - azure-blob-storage
-- azure-active-directory
 - azure-api-management
 urlFragment: functions-apim-managed-identity
 ---
