@@ -86,7 +86,7 @@ This following diagram provides an overview of the demo for this use case:
 For the Function App to APIM authentication use case, the most important parts can be found in these files:
 
 * APIM Policy definition: [apim.tf](terraform/apim.tf)
-* Azure Function C# code: [Test.cs](src/Functions/PublicFunction/Test.cs)
+* Azure Function C# code: [Test.cs](src/Functions/PrivateFunction/Test.cs)
 
 The Azure Function code follows these steps:
 
